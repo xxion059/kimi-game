@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kimi 券券大作战</title>
+<style>
+:root {
+  --bg: #0a0a14;
+  --green: #39ff6a;
+  --red: #ff3a3a;
+  --yellow: #ffe94a;
+  --blue: #7eb8ff;
+  --dim-green: rgba(57,255,106,0.12);
+  --dim-red: rgba(255,58,58,0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { width:100%; height:100%; background:var(--bg); font-family:'PingFang SC','Noto Sans SC',sans-serif; overflow:hidden; touch-action:none; }
+
+#wrapper { width:100%; max-width:420px; height:100svh; margin:0 auto; display:flex; flex-direction:column; position:relative; overflow:hidden; }
+
+/* HUD */
+#hud { display:flex; justify-content:space-between; align-items:center; padding:8px 16px; background:rgba(255,255,255,0.04); border-bottom:1px solid #1a1a2a; flex-shrink:0; }
+.hud-item { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.hud-label { font-size:10px; color:rgba(255,255,255,0.35); letter-spacing:1px; }
+.hud-val { font-size:15px; font-weight:700; color:#f0f0ff; }
+#hpBar { width:90px; height:5px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden; }
+#hpFill { height:100%; background:var(--green); border-radius:3px; transition:width 0.3s, background 0.3s; }
+
+/* Game canvas area */
+#gameArea { flex:1; position:relative; overflow:hidden; }
+
+/* Left coupon lane */
+#laneLeft { position:absolute; left:0; top:0; bottom:0; width:34%; background:#0a1a0a; border-right:1px solid #1a2a1a; }
+/* Right monster lane */
+#laneRight { position:absolute; right:0; top:0; bottom:0; width:66%; background:#140a0a; }
+
+.lane-label { position:absolute; top:10px; width:100%; text-align:center; font-size:10px; letter-spacing:2px; font-weight:700; opacity:0.25; }
+#laneLeft .lane-label { color:var(--green); }
+#laneRight .lane-label { color:var(--red); }
+
+/* Coupon */
+.coupon {
+  position:absolute;
+  left:50%; transform:translateX(-50%);
+  background:var(--dim-green);
+  border:1.5px solid var(--green);
+  border-radius:10px;
+  padding:7px 8px;
+  text-align:center;
+  width:75px;
+  cursor:pointer;
+}
+.coupon.glow { box-shadow:0 0 12px rgba(57,255,106,0.5); border-color:var(--yellow); }
+.coupon-threshold { font-size:10px; color:rgba(57,255,106,0.55); }
+.coupon-threshold.free { color:var(--yellow); font-weight:700; }
+.coupon-amount { font-size:17px; font-weight:900; color:var(--green); line-height:1.1; }
+.coupon-sub { font-size:9px; color:rgba(57,255,106,0.4); margin-top:1px; }
+
+/* Monster */
+.monster {
+  position:absolute;
+  text-align:center;
+  width:52px;
+}
+.monster-body {
+  background:var(--dim-red);
+  border:1.5px solid var(--red);
+  border-radius:50%;
+  width:48px; height:48px;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto;
+}
+.monster-char { font-size:18px; font-weight:900; color:var(--red); }
+.monster-hpbar { width:44px; height:3px; background:rgba(255,255,255,0.1); border-radius:2px; margin:3px auto 0; overflow:hidden; }
+.monster-hpfill { height:100%; background:var(--red); border-radius:2px; transition:width 0.15s; }
+
+/* Kimi */
+#kimi {
+  position:absolute;
+  bottom:24px;
+  width:64px; height:64px;
+  transform:translateX(-50%);
+  z-index:5;
+  transition:left 0.1s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.kimi-body {
+  width:64px; height:64px;
+  background:linear-gradient(135deg,#1a3a5c,#2a5a8c);
+  border:2px solid var(--blue);
+  border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 18px rgba(126,184,255,0.25);
+  position:relative;
+}
+.kimi-text { font-size:18px; font-weight:900; color:var(--blue); letter-spacing:1px; }
+.kimi-glow { position:absolute; inset:-3px; border-radius:16px; border:1px solid rgba(126,184,255,0.2); animation:pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:0.3;} 50%{opacity:0.7;} }
+
+/* Bullet */
+.bullet {
+  position:absolute;
+  width:6px; height:14px;
+  background:var(--yellow);
+  border-radius:3px;
+  box-shadow:0 0 6px var(--yellow);
+  z-index:6;
+  pointer-events:none;
+}
+
+/* Particles */
+.particle {
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:10;
+}
+
+/* Effects */
+.hit-flash { animation:hitFlash 0.2s ease-out; }
+@keyframes hitFlash { 0%{filter:brightness(3);} 100%{filter:brightness(1);} }
+
+.dmg-num {
+  position:absolute;
+  font-size:16px; font-weight:900; color:var(--yellow);
+  pointer-events:none; z-index:20;
+  animation:floatUp 0.6s ease-out forwards;
+}
+@keyframes floatUp { 0%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-36px);} }
+
+.collect-anim {
+  position:absolute; pointer-events:none; z-index:20;
+  display:flex; flex-direction:column; align-items:center;
+  animation:collectUp 0.9s ease-out forwards;
+}
+.collect-anim .icon { font-size:28px; }
+.collect-anim .txt { font-size:12px; font-weight:700; color:var(--green); white-space:nowrap; }
+@keyframes collectUp { 0%{opacity:1;transform:translateY(0) scale(0.8);} 40%{opacity:1;transform:translateY(-18px) scale(1.1);} 100%{opacity:0;transform:translateY(-55px) scale(0.9);} }
+
+#screenFlash { position:absolute; inset:0; pointer-events:none; z-index:50; opacity:0; }
+
+/* Bottom bar */
+#bottomBar {
+  padding:6px 14px 10px;
+  background:rgba(255,255,255,0.03);
+  border-top:1px solid #1a1a2a;
+  display:flex; justify-content:space-between; align-items:center;
+  flex-shrink:0; z-index:10;
+}
+.bar-hint { font-size:11px; color:rgba(255,255,255,0.2); letter-spacing:1px; }
+#couponStrip { display:flex; gap:4px; flex-wrap:wrap; max-width:200px; }
+.mini-coupon { background:rgba(57,255,106,0.15); border:1px solid rgba(57,255,106,0.4); border-radius:5px; padding:2px 5px; font-size:10px; color:var(--green); font-weight:700; }
+
+/* Overlays */
+.overlay { position:absolute; inset:0; background:rgba(10,10,20,0.93); z-index:100; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+.overlay h1 { font-size:30px; font-weight:900; color:#f0f0ff; letter-spacing:2px; }
+.overlay p { font-size:13px; color:rgba(255,255,255,0.45); text-align:center; max-width:260px; line-height:1.7; }
+.btn-start { padding:13px 38px; background:var(--blue); color:#0a0a14; border:none; border-radius:50px; font-size:15px; font-weight:900; font-family:inherit; cursor:pointer; letter-spacing:1px; box-shadow:0 0 28px rgba(126,184,255,0.35); }
+.logo-big { font-size:46px; font-weight:900; color:var(--blue); text-shadow:0 0 40px rgba(126,184,255,0.5); letter-spacing:4px; }
+.logo-sub { font-size:12px; color:rgba(126,184,255,0.45); letter-spacing:3px; }
+.coupon-summary { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-width:280px; }
+.sum-coupon { background:rgba(57,255,106,0.1); border:1px solid rgba(57,255,106,0.4); border-radius:7px; padding:5px 10px; font-size:12px; color:var(--green); font-weight:700; }
+</style>
+</head>
+<body>
+<div id="wrapper">
+  <div id="hud">
+    <div class="hud-item">
+      <span class="hud-label">HP</span>
+      <div id="hpBar"><div id="hpFill"></div></div>
+      <span class="hud-val" id="hpVal">100</span>
+    </div>
+    <div class="hud-item"><span class="hud-label">击败</span><span class="hud-val" id="killVal">0</span></div>
+    <div class="hud-item"><span class="hud-label">波次</span><span class="hud-val" id="waveVal">1</span></div>
+  </div>
+
+  <div id="gameArea">
+    <div id="laneLeft"><div class="lane-label">- 代金券 -</div></div>
+    <div id="laneRight"><div class="lane-label">- 怪物 -</div></div>
+    <div id="kimi"><div class="kimi-body"><div class="kimi-glow"></div><span class="kimi-text">Kimi</span></div></div>
+    <div id="screenFlash"></div>
+  </div>
+
+  <div id="bottomBar">
+    <div id="couponStrip"></div>
+    <span class="bar-hint" id="waveInfo">第1波</span>
+    <span class="bar-hint">← 滑动 →</span>
+  </div>
+
+  <div class="overlay" id="startOverlay">
+    <div class="logo-big">Kimi</div>
+    <div class="logo-sub">券券大作战</div>
+    <p>向左滑拿代金券<br>向右滑让 Kimi 射击怪物<br>打怪可降低券的门槛！</p>
+    <button class="btn-start" id="startBtn">开始游戏</button>
+  </div>
+
+  <div class="overlay" id="gameOverOverlay" style="display:none">
+    <h1>游戏结束</h1>
+    <p id="goStats"></p>
+    <div class="coupon-summary" id="goSummary"></div>
+    <button class="btn-start" id="restartBtn">再来一次</button>
+  </div>
+</div>
+
+<script>
+const MAX_HP = 100;
+let hp, kills, wave, gameRunning;
+let coupons = [];
+let monsters = [];
+let bullets = [];
+let collectedCoupons = [];
+let kimiX;
+let gameAreaW, gameAreaH, leftW, rightW, rightX;
+let touchStartX;
+let animFrame;
+let lastTime = 0;
+let monsterSpawnTimer = 0;
+let couponSpawnTimer = 0;
+let shootTimer = 0;
+let couponSeriesIdx = 0;
+
+// Audio context
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(type) {
+  try {
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    if (type === 'shoot') {
+      o.type = 'square';
+      o.frequency.setValueAtTime(880, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.08);
+      g.gain.setValueAtTime(0.15, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      o.start(); o.stop(ctx.currentTime + 0.1);
+    } else if (type === 'kill') {
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(440, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.05);
+      o.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.25);
+      g.gain.setValueAtTime(0.3, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      o.start(); o.stop(ctx.currentTime + 0.3);
+    } else if (type === 'collect') {
+      o.type = 'sine';
+      o.frequency.setValueAtTime(523, ctx.currentTime);
+      o.frequency.setValueAtTime(659, ctx.currentTime + 0.07);
+      o.frequency.setValueAtTime(784, ctx.currentTime + 0.14);
+      g.gain.setValueAtTime(0.3, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      o.start(); o.stop(ctx.currentTime + 0.3);
+    } else if (type === 'damage') {
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(150, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.2);
+      g.gain.setValueAtTime(0.4, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      o.start(); o.stop(ctx.currentTime + 0.2);
+    }
+  } catch(e) {}
+}
+
+// Coupon series [threshold, amount]
+const COUPON_SERIES = [
+  [200,5],[190,5],[180,5],[170,5],[160,5],[150,5],[140,5],[130,5],[120,5],
+  [110,5],[100,5],[90,5],[80,5],[70,5],[60,5],[50,5],[40,5],[30,5],[20,5],[10,5],[5,5],
+  [99,6],[80,6],[60,6],[40,6],[20,6],[6,6],
+  [99,7],[70,7],[50,7],[30,7],[7,7],
+  [99,8],[60,8],[40,8],[8,8],
+  [99,9],[50,9],[9,9],
+  [99,10],[10,10]
+];
+
+const laneLeftEl = document.getElementById('laneLeft');
+const laneRightEl = document.getElementById('laneRight');
+const kimiEl = document.getElementById('kimi');
+const gameArea = document.getElementById('gameArea');
+const hpFill = document.getElementById('hpFill');
+const hpVal = document.getElementById('hpVal');
+const killVal = document.getElementById('killVal');
+const waveVal = document.getElementById('waveVal');
+const screenFlash = document.getElementById('screenFlash');
+const couponStrip = document.getElementById('couponStrip');
+const waveInfo = document.getElementById('waveInfo');
+const startOverlay = document.getElementById('startOverlay');
+const gameOverOverlay = document.getElementById('gameOverOverlay');
+
+function initDimensions() {
+  gameAreaW = gameArea.offsetWidth;
+  gameAreaH = gameArea.offsetHeight;
+  leftW = gameAreaW * 0.34;
+  rightW = gameAreaW * 0.66;
+  rightX = leftW;
+}
+
+function initGame() {
+  hp = MAX_HP;
+  kills = 0;
+  wave = 1;
+  gameRunning = true;
+  coupons = [];
+  monsters = [];
+  bullets = [];
+  collectedCoupons = [];
+  couponSeriesIdx = 0;
+  monsterSpawnTimer = 0;
+  couponSpawnTimer = 0;
+  shootTimer = 0;
+  lastTime = 0;
+
+  laneLeftEl.querySelectorAll('.coupon').forEach(e => e.remove());
+  laneRightEl.querySelectorAll('.monster').forEach(e => e.remove());
+  gameArea.querySelectorAll('.bullet,.dmg-num,.collect-anim,.particle').forEach(e => e.remove());
+  couponStrip.innerHTML = '';
+
+  initDimensions();
+  kimiX = gameAreaW / 2;
+  updateKimiPos(false);
+  updateHUD();
+}
+
+function updateKimiPos(animate) {
+  kimiEl.style.transition = animate ? 'left 0.1s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none';
+  kimiEl.style.left = kimiX + 'px';
+}
+
+function updateHUD() {
+  const pct = Math.max(0, hp / MAX_HP * 100);
+  hpFill.style.width = pct + '%';
+  hpFill.style.background = pct > 50 ? '#39ff6a' : pct > 25 ? '#ffe94a' : '#ff3a3a';
+  hpVal.textContent = Math.max(0, hp);
+  killVal.textContent = kills;
+  waveVal.textContent = wave;
+  waveInfo.textContent = '第' + wave + '波';
+}
+
+// ---- Coupon spawn ----
+function getCurrentCouponData() {
+  const idx = Math.min(couponSeriesIdx, COUPON_SERIES.length - 1);
+  return { threshold: COUPON_SERIES[idx][0], amount: COUPON_SERIES[idx][1] };
+}
+
+function spawnCoupon() {
+  const data = getCurrentCouponData();
+  const el = document.createElement('div');
+  el.className = 'coupon';
+  const isFree = data.threshold <= data.amount;
+  if (isFree) el.classList.add('glow');
+  const thText = isFree ? '无门槛' : '满' + data.threshold;
+  const thClass = isFree ? 'coupon-threshold free' : 'coupon-threshold';
+  el.innerHTML = '<div class="' + thClass + '">' + thText + '</div>' +
+    '<div class="coupon-amount">减' + data.amount + '</div>' +
+    '<div class="coupon-sub">代金券</div>';
+
+  // Fixed Y positions: space them out vertically
+  const yPositions = [gameAreaH * 0.2, gameAreaH * 0.45, gameAreaH * 0.68];
+  const usedY = coupons.map(c => c.y);
+  let y = null;
+  for (const pos of yPositions) {
+    if (!usedY.some(uy => Math.abs(uy - pos) < 60)) { y = pos; break; }
+  }
+  if (y === null) return;
+
+  el.style.top = y + 'px';
+  laneLeftEl.appendChild(el);
+  coupons.push({ el, threshold: data.threshold, amount: data.amount, y, active: true });
+}
+
+function refreshCouponLabels() {
+  const data = getCurrentCouponData();
+  for (const c of coupons) {
+    if (!c.active) continue;
+    c.threshold = data.threshold;
+    c.amount = data.amount;
+    const isFree = c.threshold <= c.amount;
+    const thText = isFree ? '无门槛' : '满' + c.threshold;
+    const thClass = 'coupon-threshold' + (isFree ? ' free' : '');
+    c.el.querySelector('.coupon-threshold').textContent = thText;
+    c.el.querySelector('.coupon-threshold').className = thClass;
+    c.el.querySelector('.coupon-amount').textContent = '减' + c.amount;
+    if (isFree) c.el.classList.add('glow');
+  }
+}
+
+// ---- Monster spawn ----
+const MONSTER_COLS = 3;
+function spawnMonster() {
+  const baseHp = 20 + wave * 8;
+  // Pick a column in the right lane
+  const colW = rightW / MONSTER_COLS;
+  const usedCols = monsters.filter(m => m.active && m.y < 80).map(m => m.col);
+  let col = Math.floor(Math.random() * MONSTER_COLS);
+  for (let attempt = 0; attempt < MONSTER_COLS; attempt++) {
+    if (!usedCols.includes(col)) break;
+    col = (col + 1) % MONSTER_COLS;
+  }
+  const xInRight = colW * col + colW / 2 - 24;
+
+  const el = document.createElement('div');
+  el.className = 'monster';
+  el.style.left = xInRight + 'px';
+  el.innerHTML = '<div class="monster-body"><div class="monster-char">怪</div></div>' +
+    '<div class="monster-hpbar"><div class="monster-hpfill" style="width:100%"></div></div>';
+  laneRightEl.appendChild(el);
+  monsters.push({ el, hpMax: baseHp, hpCur: baseHp, y: -60, col, active: true });
+}
+
+// ---- Bullets ----
+function shootBullet() {
+  if (kimiX < leftW + 20) return; // in coupon lane, don't shoot
+  const el = document.createElement('div');
+  el.className = 'bullet';
+  // bullet starts at kimi position
+  const bx = kimiX - 3;
+  const by = gameAreaH - 88;
+  el.style.left = bx + 'px';
+  el.style.top = by + 'px';
+  gameArea.appendChild(el);
+  bullets.push({ el, x: bx, y: by, active: true });
+  playSound('shoot');
+}
+
+// ---- Collect coupon ----
+function tryCollectCoupon() {
+  if (kimiX > leftW - 10) return; // not in coupon lane
+  let closest = null, minDist = 999;
+  for (const c of coupons) {
+    if (!c.active) continue;
+    const dist = Math.abs(c.y + 30 - (gameAreaH - 88));
+    if (dist < minDist) { minDist = dist; closest = c; }
+  }
+  if (!closest || minDist > gameAreaH) {
+    // collect the topmost one if any
+    closest = coupons.find(c => c.active);
+  }
+  if (closest) collectCoupon(closest);
+}
+
+function collectCoupon(c) {
+  c.active = false;
+  c.el.remove();
+  coupons = coupons.filter(x => x !== c);
+
+  playSound('collect');
+
+  // Animate
+  const anim = document.createElement('div');
+  anim.className = 'collect-anim';
+  anim.style.left = (leftW / 2 - 40) + 'px';
+  anim.style.top = (gameAreaH / 2 - 40) + 'px';
+  const isFree = c.threshold <= c.amount;
+  const label = (isFree ? '无门槛' : '满' + c.threshold) + '减' + c.amount;
+  anim.innerHTML = '<div class="icon">🎟️</div><div class="txt">' + label + ' 到手!</div>';
+  gameArea.appendChild(anim);
+  setTimeout(() => anim.remove(), 1000);
+
+  collectedCoupons.push(label);
+  const badge = document.createElement('div');
+  badge.className = 'mini-coupon';
+  badge.textContent = '减' + c.amount;
+  couponStrip.appendChild(badge);
+
+  couponSeriesIdx = Math.min(couponSeriesIdx + 1, COUPON_SERIES.length - 1);
+
+  // Flash green
+  screenFlash.style.background = 'rgba(57,255,106,0.2)';
+  screenFlash.style.opacity = '1';
+  screenFlash.style.transition = 'opacity 0s';
+  setTimeout(() => { screenFlash.style.transition = 'opacity 0.4s'; screenFlash.style.opacity = '0'; }, 50);
+}
+
+// ---- Hit monster ----
+function hitMonster(m, bx, by) {
+  m.hpCur -= 15;
+  if (m.hpCur < 0) m.hpCur = 0;
+  const pct = (m.hpCur / m.hpMax * 100) + '%';
+  m.el.querySelector('.monster-hpfill').style.width = pct;
+
+  // Damage number
+  const dn = document.createElement('div');
+  dn.className = 'dmg-num';
+  dn.textContent = '-15';
+  dn.style.left = (rightX + bx - 10) + 'px';
+  dn.style.top = (m.y + 5) + 'px';
+  gameArea.appendChild(dn);
+  setTimeout(() => dn.remove(), 700);
+
+  // Lower coupon threshold on each hit
+  couponSeriesIdx = Math.min(couponSeriesIdx + 1, COUPON_SERIES.length - 1);
+  refreshCouponLabels();
+
+  if (m.hpCur <= 0) {
+    playSound('kill');
+    kills++;
+    wave = Math.floor(kills / 5) + 1;
+    spawnParticles(rightX + bx, m.y + 24);
+    m.active = false;
+    m.el.remove();
+    monsters = monsters.filter(x => x !== m);
+    updateHUD();
+  }
+}
+
+function spawnParticles(cx, cy) {
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 4 + Math.random() * 5;
+    p.style.cssText = 'width:' + size + 'px;height:' + size + 'px;background:#ff3a3a;left:' + cx + 'px;top:' + cy + 'px;';
+    const angle = (i / 8) * Math.PI * 2;
+    const speed = 40 + Math.random() * 50;
+    const dx = Math.cos(angle) * speed;
+    const dy = Math.sin(angle) * speed;
+    gameArea.appendChild(p);
+    const start = performance.now();
+    function animP(ts) {
+      const t = (ts - start) / 500;
+      if (t >= 1) { p.remove(); return; }
+      p.style.left = (cx + dx * t) + 'px';
+      p.style.top = (cy + dy * t + 60 * t * t) + 'px';
+      p.style.opacity = (1 - t);
+      requestAnimationFrame(animP);
+    }
+    requestAnimationFrame(animP);
+  }
+}
+
+// ---- Game loop ----
+function gameLoop(ts) {
+  if (!gameRunning) return;
+  animFrame = requestAnimationFrame(gameLoop);
+
+  const dt = Math.min((ts - (lastTime || ts)) / 1000, 0.05);
+  lastTime = ts;
+
+  const monsterSpeed = 38 + wave * 7;
+  const bulletSpeed = 500;
+
+  // Spawn timers
+  monsterSpawnTimer -= dt;
+  couponSpawnTimer -= dt;
+  shootTimer -= dt;
+
+  if (monsterSpawnTimer <= 0) {
+    spawnMonster();
+    monsterSpawnTimer = Math.max(0.5, 1.8 - wave * 0.1);
+  }
+  if (couponSpawnTimer <= 0) {
+    if (coupons.length < 3) spawnCoupon();
+    couponSpawnTimer = 2.5;
+  }
+
+  // Auto-shoot when in right lane
+  if (kimiX > leftW + 30 && shootTimer <= 0) {
+    shootBullet();
+    shootTimer = Math.max(0.18, 0.4 - wave * 0.02);
+  }
+
+  // Move monsters
+  for (let i = monsters.length - 1; i >= 0; i--) {
+    const m = monsters[i];
+    if (!m.active) continue;
+    m.y += monsterSpeed * dt;
+    m.el.style.top = m.y + 'px';
+
+    if (m.y > gameAreaH - 20) {
+      const dmg = 12 + wave * 2;
+      hp -= dmg;
+      m.active = false;
+      m.el.remove();
+      monsters.splice(i, 1);
+      playSound('damage');
+      screenFlash.style.background = '#ff3a3a';
+      screenFlash.style.opacity = '0.3';
+      screenFlash.style.transition = 'opacity 0s';
+      setTimeout(() => { screenFlash.style.transition = 'opacity 0.35s'; screenFlash.style.opacity = '0'; }, 40);
+      updateHUD();
+      if (hp <= 0) { gameOver(); return; }
+    }
+  }
+
+  // Move bullets up
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    if (!b.active) continue;
+    b.y -= bulletSpeed * dt;
+    b.el.style.top = b.y + 'px';
+
+    if (b.y < -20) {
+      b.active = false; b.el.remove(); bullets.splice(i, 1); continue;
+    }
+
+    // Bullet in right lane only (x > leftW)
+    if (b.x < leftW) { continue; }
+    const bxInRight = b.x - rightX;
+
+    // Collision with monsters
+    let hit = false;
+    for (const m of monsters) {
+      if (!m.active) continue;
+      const mx = m.el.offsetLeft + 24;
+      const my = m.y + 24;
+      const dx = bxInRight - mx;
+      const dy = b.y - my;
+      if (Math.abs(dx) < 28 && Math.abs(dy) < 30) {
+        b.active = false; b.el.remove(); bullets.splice(i, 1);
+        hitMonster(m, bxInRight, b.y);
+        hit = true; break;
+      }
+    }
+    if (hit) continue;
+  }
+}
+
+// ---- Game over ----
+function gameOver() {
+  gameRunning = false;
+  cancelAnimationFrame(animFrame);
+  gameOverOverlay.style.display = 'flex';
+  document.getElementById('goStats').textContent = '击败 ' + kills + ' 只怪物，到达第 ' + wave + ' 波';
+  const summary = document.getElementById('goSummary');
+  summary.innerHTML = '';
+  if (collectedCoupons.length === 0) {
+    summary.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:13px">没有拿到任何代金券</p>';
+  } else {
+    collectedCoupons.forEach(label => {
+      const d = document.createElement('div');
+      d.className = 'sum-coupon';
+      d.textContent = label;
+      summary.appendChild(d);
+    });
+  }
+}
+
+// ---- Touch controls ----
+gameArea.addEventListener('touchstart', e => {
+  e.preventDefault();
+  touchStartX = e.touches[0].clientX;
+  getAudio(); // unlock audio on first touch
+}, { passive: false });
+
+gameArea.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const dx = e.touches[0].clientX - touchStartX;
+  touchStartX = e.touches[0].clientX;
+  const gaRect = gameArea.getBoundingClientRect();
+  kimiX = Math.max(32, Math.min(gameAreaW - 32, kimiX + dx));
+  updateKimiPos(true);
+
+  // If moved into coupon lane, try collect
+  if (kimiX < leftW - 5) tryCollectCoupon();
+}, { passive: false });
+
+gameArea.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (kimiX < leftW - 5) tryCollectCoupon();
+}, { passive: false });
+
+// Mouse fallback
+gameArea.addEventListener('mousedown', e => { touchStartX = e.clientX; getAudio(); });
+gameArea.addEventListener('mousemove', e => {
+  if (e.buttons !== 1) return;
+  const dx = e.clientX - touchStartX;
+  touchStartX = e.clientX;
+  kimiX = Math.max(32, Math.min(gameAreaW - 32, kimiX + dx));
+  updateKimiPos(true);
+  if (kimiX < leftW - 5) tryCollectCoupon();
+});
+gameArea.addEventListener('mouseup', () => { if (kimiX < leftW - 5) tryCollectCoupon(); });
+
+// ---- Start / Restart ----
+document.getElementById('startBtn').addEventListener('click', () => {
+  getAudio();
+  startOverlay.style.display = 'none';
+  initGame();
+  lastTime = performance.now();
+  animFrame = requestAnimationFrame(gameLoop);
+});
+document.getElementById('restartBtn').addEventListener('click', () => {
+  getAudio();
+  gameOverOverlay.style.display = 'none';
+  initGame();
+  lastTime = performance.now();
+  animFrame = requestAnimationFrame(gameLoop);
+});
+
+window.addEventListener('resize', initDimensions);
+initDimensions();
+</script>
+</body>
+</html>
