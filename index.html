@@ -5,634 +5,530 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Kimi 券券大作战</title>
 <style>
-:root{
-  --bg:#0a0a14;--green:#39ff6a;--red:#ff3a3a;--yellow:#ffe94a;--blue:#7eb8ff;--orange:#ff9a3a;--purple:#c87eff;
-}
+:root{--bg:#0a0a14;--green:#39ff6a;--red:#ff3a3a;--yellow:#ffe94a;--blue:#7eb8ff;--orange:#ff9a3a;--purple:#c87eff;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;background:var(--bg);font-family:'PingFang SC','Noto Sans SC',sans-serif;overflow:hidden;touch-action:none;}
 #wrapper{width:100%;max-width:420px;height:100svh;margin:0 auto;display:flex;flex-direction:column;position:relative;overflow:hidden;}
-
-#hud{display:flex;justify-content:space-around;align-items:center;padding:6px 8px;background:rgba(255,255,255,0.04);border-bottom:1px solid #1a1a2a;flex-shrink:0;gap:4px;}
-.hud-item{display:flex;flex-direction:column;align-items:center;gap:1px;}
-.hud-label{font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;}
-.hud-val{font-size:13px;font-weight:700;color:#f0f0ff;}
-#hpBar{width:60px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+#hud{display:flex;justify-content:space-around;align-items:center;padding:5px 6px;background:rgba(255,255,255,0.04);border-bottom:1px solid #1a1a2a;flex-shrink:0;}
+.hi{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.hl{font-size:9px;color:rgba(255,255,255,0.28);letter-spacing:1px;}
+.hv{font-size:12px;font-weight:700;color:#f0f0ff;}
+#hpBar{width:52px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
 #hpFill{height:100%;background:var(--green);border-radius:2px;transition:width 0.3s,background 0.3s;}
-.stat-atk{color:var(--yellow);}
-.stat-spd{color:var(--orange);}
-.stat-clone{color:var(--blue);}
-.stat-time{color:rgba(255,255,255,0.5);}
-
+.ca{color:var(--yellow);}.cs{color:var(--orange);}.cc{color:var(--blue);}.ct{color:rgba(255,255,255,0.35);}
 #gameArea{flex:1;position:relative;overflow:hidden;}
 #laneLeft{position:absolute;left:0;top:0;bottom:0;width:38%;background:#0a1a0a;border-right:1px solid #1a2a1a;}
 #laneRight{position:absolute;right:0;top:0;bottom:0;width:62%;background:#140a0a;}
-.lane-label{position:absolute;top:8px;width:100%;text-align:center;font-size:9px;letter-spacing:2px;font-weight:700;opacity:0.2;}
-#laneLeft .lane-label{color:var(--green);}
-#laneRight .lane-label{color:var(--red);}
-
-.wall{position:absolute;left:4px;right:4px;background:rgba(100,80,20,0.3);border:1.5px solid #aa8833;border-radius:6px;padding:4px 6px;text-align:center;}
-.wall-hp-bar{width:100%;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;margin-top:3px;}
-.wall-hp-fill{height:100%;background:#aa8833;border-radius:2px;transition:width 0.15s;}
-.wall-label{font-size:10px;font-weight:700;color:#ccaa44;}
-
-.coupon{position:absolute;left:5px;right:5px;background:rgba(57,255,106,0.1);border:1.5px solid var(--green);border-radius:8px;padding:5px 6px;text-align:center;}
-.coupon.glow{box-shadow:0 0 10px rgba(57,255,106,0.5);border-color:var(--yellow);}
-.coupon.collected{opacity:0.25;}
-.coupon-threshold{font-size:9px;color:rgba(57,255,106,0.55);}
-.coupon-threshold.free{color:var(--yellow);font-weight:700;}
-.coupon-amount{font-size:15px;font-weight:900;color:var(--green);line-height:1.1;}
-.coupon-hit{font-size:8px;color:rgba(57,255,106,0.4);margin-top:1px;}
-
-.monster{position:absolute;width:14px;height:14px;background:rgba(255,58,58,0.2);border:1px solid var(--red);border-radius:2px;display:flex;align-items:center;justify-content:center;}
-.monster-char{font-size:8px;font-weight:900;color:var(--red);}
-
-.boss-el{position:absolute;left:50%;transform:translateX(-50%);text-align:center;z-index:8;}
-.boss-body{background:rgba(200,126,255,0.2);border:2px solid var(--purple);border-radius:8px;padding:8px 14px;display:inline-block;}
-.boss-char{font-size:22px;font-weight:900;color:var(--purple);}
-.boss-hp-bar{width:120px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;margin:4px auto 0;overflow:hidden;}
-.boss-hp-fill{height:100%;background:var(--purple);border-radius:3px;transition:width 0.15s;}
-.boss-hp-text{font-size:9px;color:rgba(200,126,255,0.6);margin-top:2px;}
-
-.buff-drop{position:absolute;background:rgba(255,255,255,0.07);border-radius:7px;padding:5px 7px;text-align:center;min-width:42px;}
-.buff-drop.spd{border:1.5px solid var(--orange);background:rgba(255,154,58,0.12);}
-.buff-drop.atk{border:1.5px solid var(--yellow);background:rgba(255,234,74,0.12);}
-.buff-drop.clone{border:1.5px solid var(--blue);background:rgba(126,184,255,0.12);}
-.buff-drop .buff-name{font-size:9px;font-weight:700;}
-.buff-drop.spd .buff-name{color:var(--orange);}
-.buff-drop.atk .buff-name{color:var(--yellow);}
-.buff-drop.clone .buff-name{color:var(--blue);}
-.buff-drop .buff-val{font-size:13px;font-weight:900;line-height:1.1;}
-.buff-drop.spd .buff-val{color:var(--orange);}
-.buff-drop.atk .buff-val{color:var(--yellow);}
-.buff-drop.clone .buff-val{color:var(--blue);}
-
-.kimi-el{position:absolute;bottom:20px;width:42px;height:42px;transform:translateX(-50%);z-index:5;}
-.kimi-body{width:42px;height:42px;background:linear-gradient(135deg,#1a3a5c,#2a5a8c);border:2px solid var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(126,184,255,0.2);}
-.kimi-text{font-size:12px;font-weight:900;color:var(--blue);}
-
-.bullet{position:absolute;width:4px;height:10px;background:var(--yellow);border-radius:2px;z-index:6;pointer-events:none;}
-.bullet.left-bullet{background:var(--green);}
-
-.dmg-num{position:absolute;font-size:11px;font-weight:900;color:var(--yellow);pointer-events:none;z-index:20;animation:floatUp 0.5s ease-out forwards;}
-.collect-anim{position:absolute;pointer-events:none;z-index:20;display:flex;flex-direction:column;align-items:center;animation:collectUp 0.9s ease-out forwards;}
-.collect-anim .icon{font-size:20px;}
-.collect-anim .txt{font-size:10px;font-weight:700;color:var(--green);white-space:nowrap;}
-.buff-anim{position:absolute;pointer-events:none;z-index:20;font-size:12px;font-weight:700;animation:floatUp 0.8s ease-out forwards;}
-.particle{position:absolute;border-radius:50%;pointer-events:none;z-index:10;}
-@keyframes floatUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-40px);}}
-@keyframes collectUp{0%{opacity:1;transform:translateY(0) scale(0.8);}40%{opacity:1;transform:translateY(-15px) scale(1.1);}100%{opacity:0;transform:translateY(-50px) scale(0.9);}}
-
-#screenFlash{position:absolute;inset:0;pointer-events:none;z-index:50;opacity:0;}
-
-#warningOverlay{position:absolute;inset:0;pointer-events:none;z-index:40;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;}
-#warningOverlay.show{display:flex;}
-.warning-text{font-size:36px;font-weight:900;color:var(--red);letter-spacing:4px;animation:warningPulse 0.4s ease-in-out infinite;}
-.warning-sub{font-size:13px;color:var(--red);opacity:0.7;letter-spacing:2px;}
-@keyframes warningPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.1);}}
-
-#bottomBar{padding:5px 12px 8px;background:rgba(255,255,255,0.03);border-top:1px solid #1a1a2a;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:10;}
-.bar-hint{font-size:10px;color:rgba(255,255,255,0.2);}
-#couponStrip{display:flex;gap:3px;flex-wrap:wrap;max-width:160px;}
-.mini-coupon{background:rgba(57,255,106,0.15);border:1px solid rgba(57,255,106,0.4);border-radius:4px;padding:2px 4px;font-size:9px;color:var(--green);font-weight:700;}
-
-.overlay{position:absolute;inset:0;background:rgba(10,10,20,0.93);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
-.overlay h1{font-size:28px;font-weight:900;color:#f0f0ff;letter-spacing:2px;}
-.overlay p{font-size:12px;color:rgba(255,255,255,0.45);text-align:center;max-width:260px;line-height:1.8;}
-.btn-start{padding:12px 36px;background:var(--blue);color:#0a0a14;border:none;border-radius:50px;font-size:15px;font-weight:900;font-family:inherit;cursor:pointer;letter-spacing:1px;}
-.logo-big{font-size:42px;font-weight:900;color:var(--blue);letter-spacing:4px;}
-.logo-sub{font-size:11px;color:rgba(126,184,255,0.45);letter-spacing:3px;}
-.coupon-summary{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:280px;}
-.sum-coupon{background:rgba(57,255,106,0.1);border:1px solid rgba(57,255,106,0.4);border-radius:7px;padding:4px 8px;font-size:11px;color:var(--green);font-weight:700;}
+.wall{position:absolute;left:4px;right:4px;background:rgba(120,90,15,0.35);border:1.5px solid #bb9933;border-radius:7px;padding:3px 5px;text-align:center;}
+.whb{width:100%;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;margin-top:2px;}
+.whf{height:100%;background:#bb9933;border-radius:2px;transition:width 0.1s;}
+.wl{font-size:10px;font-weight:700;color:#ddbb44;}
+.coupon{position:absolute;left:4px;right:4px;background:rgba(57,255,106,0.09);border:1.5px solid var(--green);border-radius:8px;padding:4px 5px;text-align:center;}
+.coupon.glow{box-shadow:0 0 10px rgba(57,255,106,0.45);border-color:var(--yellow);}
+.coupon.done{opacity:0.2;}
+.ct2{font-size:9px;color:rgba(57,255,106,0.5);}
+.ct2.free{color:var(--yellow);font-weight:700;}
+.ca2{font-size:14px;font-weight:900;color:var(--green);line-height:1.1;}
+.ch{font-size:8px;color:rgba(57,255,106,0.3);margin-top:1px;}
+.monster{position:absolute;width:12px;height:12px;background:rgba(255,58,58,0.18);border:1px solid rgba(255,58,58,0.7);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:var(--red);}
+.boss-wrap{position:absolute;left:50%;transform:translateX(-50%);text-align:center;z-index:8;white-space:nowrap;}
+.boss-body{background:rgba(200,126,255,0.18);border:2px solid var(--purple);border-radius:8px;padding:6px 16px;display:inline-block;}
+.boss-char{font-size:20px;font-weight:900;color:var(--purple);}
+.boss-hpb{width:110px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;margin:3px auto 0;overflow:hidden;}
+.boss-hpf{height:100%;background:var(--purple);border-radius:3px;transition:width 0.12s;}
+.boss-hpt{font-size:9px;color:rgba(200,126,255,0.55);margin-top:1px;}
+/* Buff drop - same card style as coupon */
+.bdrop{position:absolute;background:rgba(255,255,255,0.06);border-radius:8px;padding:4px 7px;text-align:center;min-width:44px;}
+.bdrop.spd{border:1.5px solid var(--orange);background:rgba(255,154,58,0.1);}
+.bdrop.atk{border:1.5px solid var(--yellow);background:rgba(255,234,74,0.1);}
+.bdrop.cln{border:1.5px solid var(--blue);background:rgba(126,184,255,0.1);}
+.bn{font-size:9px;font-weight:700;}.bv{font-size:13px;font-weight:900;line-height:1.1;}
+.bdrop.spd .bn,.bdrop.spd .bv{color:var(--orange);}
+.bdrop.atk .bn,.bdrop.atk .bv{color:var(--yellow);}
+.bdrop.cln .bn,.bdrop.cln .bv{color:var(--blue);}
+.kimi-el{position:absolute;bottom:18px;width:40px;height:40px;transform:translateX(-50%);z-index:5;}
+.kimi-body{width:40px;height:40px;background:linear-gradient(135deg,#1a3a5c,#2a5a8c);border:2px solid var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.kimi-text{font-size:11px;font-weight:900;color:var(--blue);}
+.bullet{position:absolute;width:3px;height:9px;background:var(--yellow);border-radius:2px;z-index:6;pointer-events:none;}
+.bullet.lb{background:var(--green);}
+.dmg{position:absolute;font-size:10px;font-weight:900;color:var(--yellow);pointer-events:none;z-index:20;animation:fup 0.5s ease-out forwards;}
+.canim{position:absolute;pointer-events:none;z-index:20;display:flex;flex-direction:column;align-items:center;animation:cup 0.9s ease-out forwards;}
+.canim .ci{font-size:18px;}.canim .ct3{font-size:10px;font-weight:700;color:var(--green);white-space:nowrap;}
+.banim{position:absolute;pointer-events:none;z-index:20;font-size:11px;font-weight:700;animation:fup 0.8s ease-out forwards;}
+@keyframes fup{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-38px);}}
+@keyframes cup{0%{opacity:1;transform:translateY(0) scale(0.8);}40%{opacity:1;transform:translateY(-14px) scale(1.1);}100%{opacity:0;transform:translateY(-48px) scale(0.9);}}
+#sf{position:absolute;inset:0;pointer-events:none;z-index:50;opacity:0;}
+#warn{position:absolute;inset:0;pointer-events:none;z-index:45;display:none;align-items:center;justify-content:center;flex-direction:column;gap:6px;background:rgba(255,0,0,0.08);}
+#warn.on{display:flex;}
+.wt{font-size:34px;font-weight:900;color:var(--red);letter-spacing:4px;animation:wp 0.35s ease-in-out infinite;}
+.ws{font-size:12px;color:rgba(255,80,80,0.7);letter-spacing:2px;}
+@keyframes wp{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.08);}}
+#bottomBar{padding:4px 10px 7px;background:rgba(255,255,255,0.03);border-top:1px solid #1a1a2a;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:10;}
+.bh{font-size:9px;color:rgba(255,255,255,0.18);}
+#cs{display:flex;gap:3px;flex-wrap:wrap;max-width:150px;}
+.mc{background:rgba(57,255,106,0.14);border:1px solid rgba(57,255,106,0.35);border-radius:4px;padding:2px 4px;font-size:9px;color:var(--green);font-weight:700;}
+.overlay{position:absolute;inset:0;background:rgba(10,10,20,0.93);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;}
+.overlay h1{font-size:26px;font-weight:900;color:#f0f0ff;letter-spacing:2px;}
+.overlay p{font-size:11px;color:rgba(255,255,255,0.42);text-align:center;max-width:260px;line-height:1.8;}
+.btn{padding:11px 34px;background:var(--blue);color:#0a0a14;border:none;border-radius:50px;font-size:14px;font-weight:900;font-family:inherit;cursor:pointer;letter-spacing:1px;}
+.logo{font-size:40px;font-weight:900;color:var(--blue);letter-spacing:4px;}
+.sub{font-size:10px;color:rgba(126,184,255,0.4);letter-spacing:3px;}
+.sums{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:260px;}
+.sc{background:rgba(57,255,106,0.1);border:1px solid rgba(57,255,106,0.4);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--green);font-weight:700;}
 </style>
 </head>
 <body>
 <div id="wrapper">
   <div id="hud">
-    <div class="hud-item">
-      <span class="hud-label">HP</span>
-      <div id="hpBar"><div id="hpFill"></div></div>
-      <span class="hud-val" id="hpVal">100</span>
-    </div>
-    <div class="hud-item"><span class="hud-label">击败</span><span class="hud-val" id="killVal">0</span></div>
-    <div class="hud-item"><span class="hud-label">攻击</span><span class="hud-val stat-atk" id="atkVal">-20</span></div>
-    <div class="hud-item"><span class="hud-label">攻速</span><span class="hud-val stat-spd" id="spdVal">/10</span></div>
-    <div class="hud-item"><span class="hud-label">分身</span><span class="hud-val stat-clone" id="cloneVal">x1</span></div>
-    <div class="hud-item"><span class="hud-label">时间</span><span class="hud-val stat-time" id="timeVal">0s</span></div>
+    <div class="hi"><span class="hl">HP</span><div id="hpBar"><div id="hpFill"></div></div><span class="hv" id="hpv">100</span></div>
+    <div class="hi"><span class="hl">击败</span><span class="hv" id="kv">0</span></div>
+    <div class="hi"><span class="hl">攻击</span><span class="hv ca" id="av">-20</span></div>
+    <div class="hi"><span class="hl">攻速</span><span class="hv cs" id="sv">1/3</span></div>
+    <div class="hi"><span class="hl">分身</span><span class="hv cc" id="cv">x1</span></div>
+    <div class="hi"><span class="hl">时间</span><span class="hv ct" id="tv">0s</span></div>
   </div>
-
   <div id="gameArea">
-    <div id="laneLeft"><div class="lane-label">-- 代金券 --</div></div>
-    <div id="laneRight"><div class="lane-label">-- 怪物 --</div></div>
-    <div id="warningOverlay">
-      <div class="warning-text">WARNING</div>
-      <div class="warning-sub">BOSS 来袭!</div>
-    </div>
-    <div id="screenFlash"></div>
+    <div id="laneLeft"></div>
+    <div id="laneRight"></div>
+    <div id="warn"><div class="wt">WARNING</div><div class="ws">BOSS 来袭!</div></div>
+    <div id="sf"></div>
   </div>
-
   <div id="bottomBar">
-    <div id="couponStrip"></div>
-    <span class="bar-hint" id="waveInfo">怪x5/s</span>
-    <span class="bar-hint">← 滑动 →</span>
+    <div id="cs"></div>
+    <span class="bh" id="wi">准备...</span>
+    <span class="bh">← 滑动 →</span>
   </div>
-
-  <div class="overlay" id="startOverlay">
-    <div class="logo-big">Kimi</div>
-    <div class="logo-sub">券券大作战</div>
-    <p>左滑子弹打墙拿券，打到门槛降为无门槛自动收券<br>右滑射击怪物，buff落地自动获得<br>坚持60秒迎战BOSS!</p>
-    <button class="btn-start" id="startBtn">开始游戏</button>
+  <div class="overlay" id="so">
+    <div class="logo">Kimi</div>
+    <div class="sub">券券大作战</div>
+    <p>左滑打墙拿券 · 右滑打怪吃buff<br>攻速初始1/3 · 吃buff逐步提升<br>坚持2分钟迎战BOSS!</p>
+    <button class="btn" id="sb">开始游戏</button>
   </div>
-
-  <div class="overlay" id="gameOverOverlay" style="display:none">
+  <div class="overlay" id="go" style="display:none">
     <h1>游戏结束</h1>
-    <p id="goStats"></p>
-    <div class="coupon-summary" id="goSummary"></div>
-    <button class="btn-start" id="restartBtn">再来一次</button>
+    <p id="gos"></p>
+    <div class="sums" id="goc"></div>
+    <button class="btn" id="rb">再来一次</button>
   </div>
 </div>
-
 <script>
-var MAX_HP = 100;
-var hp, kills, gameRunning;
-var monsters = [];
-var bullets = [];
-var buffDrops = [];
-var boss = null;
-var collectedCoupons = [];
-var kimiClones = [];
-var gameAreaW, gameAreaH, leftW, rightW, rightX;
-var touchStartX = 0;
-var animFrame, lastTime = 0;
-var elapsedTime = 0;
-var monsterRate = 5;
-var monsterAccumulator = 0;
-var monsterRateTimer = 0;
-var buffTimer = 0;
-var buffCount = 0;
-var shootTimer = 0;
-var bossSpawned = false;
-var warningShown = false;
-var warningTimer = 0;
-var kimiBaseX = 0;
+var MHP=100,hp,kills,running;
+var monsters=[],bullets=[],drops=[],kimiClones=[];
+var boss=null,bossSpawned=false;
+var collected=[],warnShown=false,warnTimer=0;
+var W,H,LW,RW,RX,kimiX=0,touchX=0;
+var raf,lastT=0,elapsed=0;
+var shootT=0,waveT=0,buffT=0,buffCount=0;
+var monsterBatch=0;
+var statAtk=-20,spdLevel=0,clones=1;
+// spdLevel: 0=1/3, 1=1/2, 2=1/1, 3=x2 (max)
+var SPD_LABELS=['1/3','1/2','x1','x2'];
+var SPD_INTERVALS=[0.6,0.4,0.22,0.11];
+function getSpdLabel(){return SPD_LABELS[Math.min(spdLevel,3)];}
+function getSpdInterval(){return SPD_INTERVALS[Math.min(spdLevel,3)];}
+function getAtk(){return Math.max(1,statAtk+21);}
 
-var statAtk = -20;
-var statSpdLevel = 0;
-var statClones = 1;
-
-var couponData = [
-  { id:0, baseAmount:5,  hits:0, wallHp:10,   wallHpMax:10,   collected:false },
-  { id:1, baseAmount:10, hits:0, wallHp:100,  wallHpMax:100,  collected:false },
-  { id:2, baseAmount:15, hits:0, wallHp:1000, wallHpMax:1000, collected:false }
+// Coupon layout: from top to bottom
+// slot0: coupon减15 (top), wall1000 below it
+// slot1: coupon减10, wall100 below it
+// slot2: coupon减5 (bottom area), wall10 below it
+var cpData=[
+  {id:0,amt:15,hits:0,wallHp:1000,wallMax:1000,done:false},
+  {id:1,amt:10,hits:0,wallHp:100, wallMax:100, done:false},
+  {id:2,amt:5, hits:0,wallHp:10,  wallMax:10,  done:false}
 ];
-var wallEls = [null,null,null];
-var couponEls = [null,null,null];
+var wEls=[null,null,null],cEls=[null,null,null];
 
-function getAudio(){if(!window._ac)window._ac=new(window.AudioContext||window.webkitAudioContext)();return window._ac;}
-function playSound(type){
+function ac(){if(!window._a)window._a=new(window.AudioContext||window.webkitAudioContext)();return window._a;}
+function snd(t){
   try{
-    var ctx=getAudio(),o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime;
-    o.connect(g);g.connect(ctx.destination);
-    if(type==='shoot'){o.type='square';o.frequency.setValueAtTime(660,t);o.frequency.exponentialRampToValueAtTime(200,t+0.06);g.gain.setValueAtTime(0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.07);o.start();o.stop(t+0.07);}
-    else if(type==='kill'){o.type='sawtooth';o.frequency.setValueAtTime(330,t);o.frequency.exponentialRampToValueAtTime(110,t+0.18);g.gain.setValueAtTime(0.18,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);o.start();o.stop(t+0.2);}
-    else if(type==='collect'){o.type='sine';o.frequency.setValueAtTime(523,t);o.frequency.setValueAtTime(659,t+0.07);o.frequency.setValueAtTime(784,t+0.14);g.gain.setValueAtTime(0.28,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);o.start();o.stop(t+0.3);}
-    else if(type==='buff'){o.type='sine';o.frequency.setValueAtTime(784,t);o.frequency.setValueAtTime(1046,t+0.07);g.gain.setValueAtTime(0.2,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);o.start();o.stop(t+0.2);}
-    else if(type==='damage'){o.type='sawtooth';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(60,t+0.25);g.gain.setValueAtTime(0.3,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.25);o.start();o.stop(t+0.25);}
-    else if(type==='wallbreak'){o.type='sawtooth';o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(40,t+0.4);g.gain.setValueAtTime(0.35,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.4);o.start();o.stop(t+0.4);}
-    else if(type==='warning'){o.type='sawtooth';o.frequency.setValueAtTime(220,t);o.frequency.setValueAtTime(440,t+0.15);o.frequency.setValueAtTime(220,t+0.3);g.gain.setValueAtTime(0.4,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.5);o.start();o.stop(t+0.5);}
+    var x=ac(),o=x.createOscillator(),g=x.createGain(),n=x.currentTime;
+    o.connect(g);g.connect(x.destination);
+    if(t==='sh'){o.type='square';o.frequency.setValueAtTime(550,n);o.frequency.exponentialRampToValueAtTime(180,n+0.06);g.gain.setValueAtTime(0.07,n);g.gain.exponentialRampToValueAtTime(0.001,n+0.07);o.start();o.stop(n+0.07);}
+    else if(t==='kl'){o.type='sawtooth';o.frequency.setValueAtTime(300,n);o.frequency.exponentialRampToValueAtTime(100,n+0.18);g.gain.setValueAtTime(0.15,n);g.gain.exponentialRampToValueAtTime(0.001,n+0.2);o.start();o.stop(n+0.2);}
+    else if(t==='co'){o.type='sine';o.frequency.setValueAtTime(523,n);o.frequency.setValueAtTime(659,n+0.07);o.frequency.setValueAtTime(784,n+0.14);g.gain.setValueAtTime(0.25,n);g.gain.exponentialRampToValueAtTime(0.001,n+0.3);o.start();o.stop(n+0.3);}
+    else if(t==='bu'){o.type='sine';o.frequency.setValueAtTime(784,n);o.frequency.setValueAtTime(988,n+0.06);g.gain.setValueAtTime(0.18,n);g.gain.exponentialRampToValueAtTime(0.001,n+0.18);o.start();o.stop(n+0.18);}
+    else if(t==='dm'){o.type='sawtooth';o.frequency.setValueAtTime(140,n);o.frequency.exponentialRampToValueAtTime(55,n+0.22);g.gain.setValueAtTime(0.28,n);g.gain.exponentialRampToValueAtTime(0.001,n+0.22);o.start();o.stop(n+0.22);}
+    else if(t==='wb'){o.type='sawtooth';o.frequency.setValueAtTime(160,n);o.frequency.exponentialRampToValueAtTime(35,n+0.38);g.gain.setValueAtTime(0.3,n);g.gain.exponentialRampToValueAtTime(0.001,n+0.38);o.start();o.stop(n+0.38);}
+    else if(t==='wr'){o.type='sawtooth';o.frequency.setValueAtTime(220,n);o.frequency.setValueAtTime(440,n+0.2);o.frequency.setValueAtTime(220,n+0.4);g.gain.setValueAtTime(0.38,n);g.gain.exponentialRampToValueAtTime(0.001,n+0.55);o.start();o.stop(n+0.55);}
   }catch(e){}
 }
 
-function getSpdInterval(){var a=[0.50,0.44,0.38,0.31,0.25,0.20,0.16,0.12,0.09,0.055,0.033];return a[Math.min(statSpdLevel,a.length-1)];}
-function getSpdLabel(){var a=['/10','/9','/8','/7','/6','/5','/4','/3','x1','x2','x3'];return a[Math.min(statSpdLevel,a.length-1)];}
-function getAtkDamage(){return Math.max(1,statAtk+21);}
-
-function initDimensions(){
-  gameAreaW=gameArea.offsetWidth;gameAreaH=gameArea.offsetHeight;
-  leftW=Math.floor(gameAreaW*0.38);rightW=gameAreaW-leftW;rightX=leftW;
+function dims(){
+  var ga=document.getElementById('gameArea');
+  W=ga.offsetWidth;H=ga.offsetHeight;
+  LW=Math.floor(W*0.38);RW=W-LW;RX=LW;
 }
 
-// Left lane layout: from BOTTOM to TOP: coupon0(减5), coupon1(减10), coupon2(减15)
-// Each slot occupies 1/3 of height. slot0=bottom, slot1=mid, slot2=top
-function getSlotMidY(idx){
-  var slotH=(gameAreaH-50)/3;
-  // idx0=bottom slot, idx1=mid, idx2=top
-  var slotTop=30+(2-idx)*slotH;
-  return slotTop+slotH*0.5;
-}
+// Layout: each slot = 1/3 of height
+// Slot 0 (top): coupon at top of slot, wall below coupon
+// Slot 1 (mid): coupon at top of slot, wall below coupon
+// Slot 2 (bottom): coupon at top of slot, wall below coupon
+function slotTop(i){return 10+i*(H-20)/3;}
+function couponY(i){return slotTop(i)+4;}
+function wallY(i){return slotTop(i)+(H-20)/3*0.55;}
 
-function buildLeftLane(){
-  laneLeftEl.querySelectorAll('.wall,.coupon').forEach(function(e){e.remove();});
+function buildLeft(){
+  var ll=document.getElementById('laneLeft');
+  ll.innerHTML='';
   for(var i=0;i<3;i++){
-    var cd=couponData[i];
-    var midY=getSlotMidY(i);
-
-    var wallEl=document.createElement('div');
-    wallEl.className='wall';
-    wallEl.style.top=(midY-30)+'px';
-    var pct=(cd.wallHp/cd.wallHpMax*100)+'%';
-    wallEl.innerHTML='<div class="wall-label">墙 '+Math.ceil(cd.wallHp)+'</div><div class="wall-hp-bar"><div class="wall-hp-fill" style="width:'+pct+'"></div></div>';
-    if(cd.wallHp<=0)wallEl.style.display='none';
-    laneLeftEl.appendChild(wallEl);
-    wallEls[i]=wallEl;
-
-    var cEl=document.createElement('div');
-    cEl.className='coupon'+(cd.collected?' collected':'');
-    cEl.style.top=(midY+10)+'px';
-    var threshold=Math.max(cd.baseAmount,200-cd.hits);
-    var isFree=threshold<=cd.baseAmount;
-    if(isFree)cEl.classList.add('glow');
-    var thClass='coupon-threshold'+(isFree?' free':'');
-    var thText=isFree?'无门槛':'满'+threshold;
-    cEl.innerHTML='<div class="'+thClass+'">'+thText+'</div><div class="coupon-amount">减'+cd.baseAmount+'</div><div class="coupon-hit">命中'+cd.hits+'次</div>';
-    laneLeftEl.appendChild(cEl);
-    couponEls[i]=cEl;
+    var cd=cpData[i];
+    // Coupon
+    var ce=document.createElement('div');
+    ce.className='coupon'+(cd.done?' done':'');
+    ce.style.top=couponY(i)+'px';
+    var thr=Math.max(cd.amt,200-cd.hits),isFree=thr<=cd.amt;
+    if(isFree)ce.classList.add('glow');
+    ce.innerHTML='<div class="ct2'+(isFree?' free':'')+'>'+(isFree?'无门槛':'满'+thr)+'</div>'+
+      '<div class="ca2">减'+cd.amt+'</div>'+
+      '<div class="ch">命中'+cd.hits+'次</div>';
+    ll.appendChild(ce);cEls[i]=ce;
+    // Wall below coupon
+    var we=document.createElement('div');
+    we.className='wall';
+    we.style.top=wallY(i)+'px';
+    var wp=(cd.wallHp/cd.wallMax*100)+'%';
+    we.innerHTML='<div class="wl">墙 '+Math.ceil(cd.wallHp)+'</div>'+
+      '<div class="whb"><div class="whf" style="width:'+wp+'"></div></div>';
+    if(cd.wallHp<=0)we.style.display='none';
+    ll.appendChild(we);wEls[i]=we;
   }
 }
 
-function updateWallEl(i){
-  var cd=couponData[i],el=wallEls[i];
-  if(!el)return;
-  if(cd.wallHp<=0){el.style.display='none';return;}
-  el.querySelector('.wall-label').textContent='墙 '+Math.ceil(cd.wallHp);
-  el.querySelector('.wall-hp-fill').style.width=(cd.wallHp/cd.wallHpMax*100)+'%';
+function updWall(i){
+  var cd=cpData[i],e=wEls[i];if(!e)return;
+  if(cd.wallHp<=0){e.style.display='none';return;}
+  e.querySelector('.wl').textContent='墙 '+Math.ceil(cd.wallHp);
+  e.querySelector('.whf').style.width=(cd.wallHp/cd.wallMax*100)+'%';
 }
-function updateCouponEl(i){
-  var cd=couponData[i],el=couponEls[i];
-  if(!el)return;
-  var threshold=Math.max(cd.baseAmount,200-cd.hits);
-  var isFree=threshold<=cd.baseAmount;
-  el.className='coupon'+(isFree?' glow':'')+(cd.collected?' collected':'');
-  var thClass='coupon-threshold'+(isFree?' free':'');
-  var thText=isFree?'无门槛':'满'+threshold;
-  el.querySelector('.coupon-threshold').className=thClass;
-  el.querySelector('.coupon-threshold').textContent=thText;
-  el.querySelector('.coupon-hit').textContent='命中'+cd.hits+'次';
+function updCoupon(i){
+  var cd=cpData[i],e=cEls[i];if(!e)return;
+  var thr=Math.max(cd.amt,200-cd.hits),isFree=thr<=cd.amt;
+  e.className='coupon'+(isFree?' glow':'')+(cd.done?' done':'');
+  e.querySelector('.ct2').className='ct2'+(isFree?' free':'');
+  e.querySelector('.ct2').textContent=isFree?'无门槛':'满'+thr;
+  e.querySelector('.ch').textContent='命中'+cd.hits+'次';
 }
 
-function buildKimiClones(){
-  gameArea.querySelectorAll('.kimi-el').forEach(function(e){e.remove();});
+function buildKimi(){
+  var ga=document.getElementById('gameArea');
+  ga.querySelectorAll('.kimi-el').forEach(function(e){e.remove();});
   kimiClones=[];
-  for(var i=0;i<statClones;i++){
-    var el=document.createElement('div');
-    el.className='kimi-el';
-    el.innerHTML='<div class="kimi-body"><span class="kimi-text">Kimi</span></div>';
-    gameArea.appendChild(el);
-    kimiClones.push({el:el,x:kimiBaseX});
+  for(var i=0;i<clones;i++){
+    var e=document.createElement('div');e.className='kimi-el';
+    e.innerHTML='<div class="kimi-body"><span class="kimi-text">Kimi</span></div>';
+    ga.appendChild(e);kimiClones.push({el:e,x:kimiX});
   }
-  updateKimiPositions(false);
+  posKimi(false);
 }
-function updateKimiPositions(animate){
+function posKimi(anim){
   for(var i=0;i<kimiClones.length;i++){
-    var spacing=48,offset=(i-(kimiClones.length-1)/2)*spacing;
-    var x=Math.max(22,Math.min(gameAreaW-22,kimiBaseX+offset));
+    var sp=44,off=(i-(kimiClones.length-1)/2)*sp;
+    var x=Math.max(20,Math.min(W-20,kimiX+off));
     kimiClones[i].x=x;
-    kimiClones[i].el.style.transition=animate?'left 0.1s':'none';
+    kimiClones[i].el.style.transition=anim?'left 0.1s':'none';
     kimiClones[i].el.style.left=x+'px';
   }
 }
 
 function initGame(){
-  hp=MAX_HP;kills=0;gameRunning=true;
-  monsters=[];bullets=[];buffDrops=[];boss=null;
-  collectedCoupons=[];bossSpawned=false;warningShown=false;
-  elapsedTime=0;monsterRate=5;monsterAccumulator=0;monsterRateTimer=0;
-  buffTimer=0;buffCount=0;shootTimer=0;warningTimer=0;lastTime=0;
-  statAtk=-20;statSpdLevel=0;statClones=1;
-  couponData.forEach(function(cd){cd.hits=0;cd.wallHp=cd.wallHpMax;cd.collected=false;});
-  gameArea.querySelectorAll('.monster,.bullet,.buff-drop,.dmg-num,.collect-anim,.particle,.buff-anim,.boss-el').forEach(function(e){e.remove();});
-  document.getElementById('warningOverlay').classList.remove('show');
-  couponStrip.innerHTML='';
-  initDimensions();
-  kimiBaseX=gameAreaW/2;
-  buildLeftLane();
-  buildKimiClones();
-  updateHUD();
+  hp=MHP;kills=0;running=true;
+  monsters=[];bullets=[];drops=[];boss=null;
+  collected=[];bossSpawned=false;warnShown=false;warnTimer=0;
+  elapsed=0;shootT=0;waveT=0;buffT=0;buffCount=0;monsterBatch=0;
+  statAtk=-20;spdLevel=0;clones=1;lastT=0;
+  cpData.forEach(function(c){c.hits=0;c.wallHp=c.wallMax;c.done=false;});
+  var ga=document.getElementById('gameArea');
+  ga.querySelectorAll('.monster,.bullet,.bdrop,.dmg,.canim,.banim,.boss-wrap').forEach(function(e){e.remove();});
+  document.getElementById('warn').classList.remove('on');
+  document.getElementById('cs').innerHTML='';
+  dims();kimiX=W/2;buildLeft();buildKimi();updHUD();
 }
 
-function updateHUD(){
-  var pct=Math.max(0,hp/MAX_HP*100);
-  hpFill.style.width=pct+'%';
-  hpFill.style.background=pct>50?'#39ff6a':pct>25?'#ffe94a':'#ff3a3a';
-  document.getElementById('hpVal').textContent=Math.max(0,hp);
-  document.getElementById('killVal').textContent=kills;
-  document.getElementById('atkVal').textContent=(statAtk>=0?'+':'')+statAtk;
-  document.getElementById('spdVal').textContent=getSpdLabel();
-  document.getElementById('cloneVal').textContent='x'+statClones;
-  document.getElementById('timeVal').textContent=Math.floor(elapsedTime)+'s';
-  document.getElementById('waveInfo').textContent='怪x'+monsterRate.toFixed(0)+'/s';
+function updHUD(){
+  var p=Math.max(0,hp/MHP*100);
+  document.getElementById('hpFill').style.width=p+'%';
+  document.getElementById('hpFill').style.background=p>50?'#39ff6a':p>25?'#ffe94a':'#ff3a3a';
+  document.getElementById('hpv').textContent=Math.max(0,hp);
+  document.getElementById('kv').textContent=kills;
+  document.getElementById('av').textContent=(statAtk>=0?'+':'')+statAtk;
+  document.getElementById('sv').textContent=getSpdLabel();
+  document.getElementById('cv').textContent='x'+clones;
+  document.getElementById('tv').textContent=Math.floor(elapsed)+'s';
+  document.getElementById('wi').textContent=getMobInfo();
+}
+function getMobInfo(){
+  if(elapsed<60)return '每10s x5怪';
+  if(elapsed<90)return '每10s x10怪';
+  return '每10s x20怪';
+}
+function getMobCount(){
+  if(elapsed<60)return 5;
+  if(elapsed<90)return 10;
+  return 20;
 }
 
-// ---- Spawn single monster at random position ----
-function spawnOneMonster(){
-  var el=document.createElement('div');
-  el.className='monster';
-  var xInRight=Math.random()*(rightW-16)+2;
-  el.style.left=xInRight+'px';
-  el.innerHTML='<div class="monster-char">怪</div>';
-  laneRightEl.appendChild(el);
-  monsters.push({el:el,hpMax:1,hpCur:1,x:xInRight,y:-16,active:true});
+function spawnMobs(n){
+  var ga=document.getElementById('gameArea');
+  var lr=document.getElementById('laneRight');
+  for(var i=0;i<n;i++){
+    var e=document.createElement('div');e.className='monster';
+    var x=Math.random()*(RW-14)+1;
+    e.style.left=x+'px';e.textContent='怪';
+    lr.appendChild(e);
+    monsters.push({el:e,x:x,y:-14,hp:1,active:true});
+  }
 }
 
-// ---- Spawn boss ----
 function spawnBoss(){
   bossSpawned=true;
-  var el=document.createElement('div');
-  el.className='boss-el';
-  el.innerHTML='<div class="boss-body"><div class="boss-char">BOSS</div></div><div class="boss-hp-bar"><div class="boss-hp-fill" style="width:100%"></div></div><div class="boss-hp-text">5000</div>';
-  laneRightEl.appendChild(el);
-  boss={el:el,hpMax:5000,hpCur:5000,y:-80,active:true};
-  playSound('warning');
+  var lr=document.getElementById('laneRight');
+  var e=document.createElement('div');e.className='boss-wrap';
+  e.innerHTML='<div class="boss-body"><div class="boss-char">BOSS</div></div>'+
+    '<div class="boss-hpb"><div class="boss-hpf" style="width:100%"></div></div>'+
+    '<div class="boss-hpt">5000</div>';
+  lr.appendChild(e);
+  boss={el:e,hpMax:5000,hpCur:5000,y:-80,active:true};
+  snd('wr');
 }
-
-function updateBossEl(){
+function updBoss(){
   if(!boss)return;
-  var pct=(boss.hpCur/boss.hpMax*100)+'%';
-  boss.el.querySelector('.boss-hp-fill').style.width=pct;
-  boss.el.querySelector('.boss-hp-text').textContent=Math.ceil(boss.hpCur);
+  var p=(boss.hpCur/boss.hpMax*100)+'%';
+  boss.el.querySelector('.boss-hpf').style.width=p;
+  boss.el.querySelector('.boss-hpt').textContent=Math.ceil(boss.hpCur);
 }
 
-// ---- Buff drop ----
-function spawnBuff(forceType){
-  var type=forceType||(Math.random()<0.5?'atk':'clone');
-  var el=document.createElement('div');
-  el.className='buff-drop '+type;
-  var xInRight=Math.random()*(rightW-50)+5;
-  el.style.left=xInRight+'px';
-  var names={spd:'攻速',atk:'攻击',clone:'分身'};
-  var vals={spd:getSpdLabel(),atk:(statAtk>=0?'+':'')+statAtk,clone:'x'+statClones};
-  el.innerHTML='<div class="buff-name">'+names[type]+'</div><div class="buff-val">UP</div>';
-  laneRightEl.appendChild(el);
-  buffDrops.push({el:el,type:type,x:xInRight,y:-40,active:true});
+function spawnDrop(type){
+  var lr=document.getElementById('laneRight');
+  var e=document.createElement('div');e.className='bdrop '+type;
+  var x=Math.random()*(RW-50)+2;e.style.left=x+'px';
+  var nm={spd:'攻速',atk:'攻击',cln:'分身'};
+  var nxt={spd:SPD_LABELS[Math.min(spdLevel+1,3)],atk:'+'+(statAtk+1),cln:'x'+(clones+1)};
+  e.innerHTML='<div class="bn">'+nm[type]+'</div><div class="bv">'+nxt[type]+'</div>';
+  lr.appendChild(e);
+  drops.push({el:e,type:type,x:x,y:-42,active:true});
 }
 
-// ---- Shoot ----
-function shootBullets(){
-  var dmg=getAtkDamage();
+function shoot(){
+  var dmg=getAtk();
+  var ga=document.getElementById('gameArea');
   kimiClones.forEach(function(kc){
-    var el=document.createElement('div');
-    var inLeft=kc.x<leftW+5;
-    el.className='bullet'+(inLeft?' left-bullet':'');
-    var bx=kc.x-2,by=gameAreaH-66;
-    el.style.left=bx+'px';el.style.top=by+'px';
-    gameArea.appendChild(el);
-    bullets.push({el:el,x:bx,y:by,damage:dmg,inLeft:inLeft,active:true});
+    var e=document.createElement('div');
+    var inL=kc.x<LW+4;
+    e.className='bullet'+(inL?' lb':'');
+    var bx=kc.x-1.5,by=H-62;
+    e.style.left=bx+'px';e.style.top=by+'px';
+    ga.appendChild(e);
+    bullets.push({el:e,x:bx,y:by,dmg:dmg,inL:inL,active:true});
   });
-  playSound('shoot');
+  snd('sh');
 }
 
-// ---- Hit wall ----
-function hitWall(idx,dmg,bx,by){
-  var cd=couponData[idx];
-  cd.wallHp-=dmg;if(cd.wallHp<0)cd.wallHp=0;
-  updateWallEl(idx);
-  showDmgNum('-'+dmg,bx,by);
-  if(cd.wallHp<=0)playSound('wallbreak');
+function hitWall(i,dmg,bx,by){
+  var cd=cpData[i];cd.wallHp-=dmg;if(cd.wallHp<0)cd.wallHp=0;
+  updWall(i);showDmg('-'+dmg,bx,by);
+  if(cd.wallHp<=0)snd('wb');
 }
-
-// ---- Hit coupon ----
-function hitCoupon(idx){
-  var cd=couponData[idx];
-  if(cd.collected)return;
-  cd.hits++;
-  updateCouponEl(idx);
-  var threshold=Math.max(cd.baseAmount,200-cd.hits);
-  if(threshold<=cd.baseAmount)collectCoupon(idx);
+function hitCoupon(i){
+  var cd=cpData[i];if(cd.done)return;
+  cd.hits++;updCoupon(i);
+  var thr=Math.max(cd.amt,200-cd.hits);
+  if(thr<=cd.amt)collectCoupon(i);
 }
-
-function collectCoupon(idx){
-  var cd=couponData[idx];
-  if(cd.collected)return;
-  cd.collected=true;
-  playSound('collect');
-  updateCouponEl(idx);
-  var label='无门槛减'+cd.baseAmount;
-  collectedCoupons.push(label);
-  var anim=document.createElement('div');
-  anim.className='collect-anim';
-  anim.style.left=(leftW/2-30)+'px';
-  anim.style.top=(gameAreaH*0.4)+'px';
-  anim.innerHTML='<div class="icon">🎟️</div><div class="txt">'+label+' 到手!</div>';
-  gameArea.appendChild(anim);
-  setTimeout(function(){anim.remove();},1000);
-  var badge=document.createElement('div');
-  badge.className='mini-coupon';
-  badge.textContent='减'+cd.baseAmount;
-  couponStrip.appendChild(badge);
-  flashScreen('#39ff6a',0.2);
+function collectCoupon(i){
+  var cd=cpData[i];if(cd.done)return;
+  cd.done=true;snd('co');updCoupon(i);
+  var lbl='无门槛减'+cd.amt;collected.push(lbl);
+  var ga=document.getElementById('gameArea');
+  var a=document.createElement('div');a.className='canim';
+  a.style.left=(LW/2-28)+'px';a.style.top=(H*0.35+i*50)+'px';
+  a.innerHTML='<div class="ci">🎟️</div><div class="ct3">'+lbl+' 到手!</div>';
+  ga.appendChild(a);setTimeout(function(){a.remove();},1000);
+  var b=document.createElement('div');b.className='mc';b.textContent='减'+cd.amt;
+  document.getElementById('cs').appendChild(b);
+  flash('#39ff6a',0.18);
 }
-
-// ---- Hit monster ----
-function hitMonster(m,dmg){
-  m.hpCur-=dmg;
-  if(m.hpCur<=0){
-    kills++;m.active=false;m.el.remove();
-    monsters=monsters.filter(function(x){return x!==m;});
-    playSound('kill');updateHUD();
-  }
+function hitMob(m,dmg){
+  m.hp-=dmg;
+  if(m.hp<=0){kills++;m.active=false;m.el.remove();monsters=monsters.filter(function(x){return x!==m;});snd('kl');updHUD();}
 }
-
-// ---- Hit boss ----
 function hitBoss(dmg){
   if(!boss||!boss.active)return;
-  boss.hpCur-=dmg;
-  if(boss.hpCur<0)boss.hpCur=0;
-  updateBossEl();
-  kills++;updateHUD();
+  boss.hpCur-=dmg;if(boss.hpCur<0)boss.hpCur=0;updBoss();kills++;updHUD();
   if(boss.hpCur<=0){
-    boss.active=false;boss.el.remove();boss=null;
-    bossSpawned=false;
-    flashScreen('#c87eff',0.4);
-    playSound('collect');
-    var ba=document.createElement('div');
-    ba.className='buff-anim';ba.style.color='#c87eff';
-    ba.style.left=(rightX+rightW/2-40)+'px';ba.style.top=(gameAreaH/2)+'px';
-    ba.style.fontSize='18px';ba.textContent='BOSS 击败!';
-    gameArea.appendChild(ba);setTimeout(function(){ba.remove();},1000);
+    boss.active=false;boss.el.remove();boss=null;bossSpawned=false;
+    flash('#c87eff',0.4);snd('co');
+    showBossKill();
   }
 }
-
-// ---- Apply buff ----
+function showBossKill(){
+  var ga=document.getElementById('gameArea');
+  var b=document.createElement('div');b.className='banim';
+  b.style.color='#c87eff';b.style.left=(RX+RW/2-40)+'px';b.style.top=(H/2)+'px';
+  b.style.fontSize='16px';b.textContent='BOSS 击败!';
+  ga.appendChild(b);setTimeout(function(){b.remove();},1000);
+}
 function applyBuff(type){
-  playSound('buff');
-  var label='';
-  var colors={spd:'#ff9a3a',atk:'#ffe94a',clone:'#7eb8ff'};
-  if(type==='spd'){if(statSpdLevel<10){statSpdLevel++;label='攻速 '+getSpdLabel();}else label='攻速MAX';}
-  else if(type==='atk'){if(statAtk<5){statAtk++;label='攻击 '+(statAtk>=0?'+':'')+statAtk;}else label='攻击MAX';}
-  else if(type==='clone'){if(statClones<3){statClones++;buildKimiClones();label='分身 x'+statClones;}else label='分身MAX';}
-  updateHUD();
-  var ba=document.createElement('div');
-  ba.className='buff-anim';ba.style.color=colors[type];
-  ba.style.left=(rightX+rightW/2-30)+'px';ba.style.top=(gameAreaH-90)+'px';
-  ba.textContent=label;
-  gameArea.appendChild(ba);setTimeout(function(){ba.remove();},900);
-  flashScreen(colors[type],0.15);
+  snd('bu');
+  var ga=document.getElementById('gameArea');
+  var colors={spd:'#ff9a3a',atk:'#ffe94a',cln:'#7eb8ff'};
+  var lbl='';
+  if(type==='spd'){if(spdLevel<3){spdLevel++;lbl='攻速 '+getSpdLabel();}else lbl='攻速MAX';}
+  else if(type==='atk'){if(statAtk<5){statAtk++;lbl='攻击 '+(statAtk>=0?'+':'')+statAtk;}else lbl='攻击MAX';}
+  else if(type==='cln'){if(clones<3){clones++;buildKimi();lbl='分身 x'+clones;}else lbl='分身MAX';}
+  updHUD();
+  var b=document.createElement('div');b.className='banim';b.style.color=colors[type];
+  b.style.left=(RX+RW/2-25)+'px';b.style.top=(H-95)+'px';b.textContent=lbl;
+  ga.appendChild(b);setTimeout(function(){b.remove();},900);
+  flash(colors[type],0.13);
+}
+function showDmg(txt,x,y){
+  var ga=document.getElementById('gameArea');
+  var d=document.createElement('div');d.className='dmg';d.textContent=txt;
+  d.style.left=(x-4)+'px';d.style.top=(y-8)+'px';
+  ga.appendChild(d);setTimeout(function(){d.remove();},550);
+}
+function flash(col,alpha){
+  var sf=document.getElementById('sf');
+  sf.style.background=col;sf.style.opacity=alpha;sf.style.transition='opacity 0s';
+  setTimeout(function(){sf.style.transition='opacity 0.32s';sf.style.opacity='0';},40);
 }
 
-function showDmgNum(txt,x,y){
-  var dn=document.createElement('div');
-  dn.className='dmg-num';dn.textContent=txt;
-  dn.style.left=(x-5)+'px';dn.style.top=(y-10)+'px';
-  gameArea.appendChild(dn);setTimeout(function(){dn.remove();},600);
+// Bullet-left collision: check wall first (below coupon), then coupon above it
+// Layout per slot i: couponY(i) = top of coupon, wallY(i) = top of wall below coupon
+// Coupon height ~52px, wall height ~26px
+function checkLeftBullet(bl){
+  for(var i=0;i<3;i++){
+    var cd=cpData[i];
+    var cy=couponY(i),wy=wallY(i);
+    // Wall zone: wy to wy+26
+    // Coupon zone: cy to cy+52
+    // Bullet travels upward, check wall first (lower Y means higher on screen, wall is below coupon)
+    // "below" visually = higher Y value
+    // Wall is at wy (higher Y), coupon at cy (lower Y)
+    if(cd.wallHp>0){
+      if(bl.y+9>=wy&&bl.y<=wy+24){
+        hitWall(i,bl.dmg,bl.x,bl.y);return true;
+      }
+    }else if(!cd.done){
+      if(bl.y+9>=cy&&bl.y<=cy+52){
+        hitCoupon(i);return true;
+      }
+    }
+  }
+  return false;
 }
 
-function flashScreen(color,alpha){
-  screenFlash.style.background=color;screenFlash.style.opacity=alpha;
-  screenFlash.style.transition='opacity 0s';
-  setTimeout(function(){screenFlash.style.transition='opacity 0.35s';screenFlash.style.opacity='0';},40);
-}
+function loop(ts){
+  if(!running)return;
+  raf=requestAnimationFrame(loop);
+  var dt=Math.min((ts-(lastT||ts))/1000,0.05);
+  lastT=ts;elapsed+=dt;
 
-// ---- Main game loop ----
-function gameLoop(ts){
-  if(!gameRunning)return;
-  animFrame=requestAnimationFrame(gameLoop);
-  var dt=Math.min((ts-(lastTime||ts))/1000,0.05);
-  lastTime=ts;
-  elapsedTime+=dt;
+  // Wave timer: spawn batch every 10s
+  waveT+=dt;
+  if(waveT>=10){waveT=0;spawnMobs(getMobCount());}
 
-  // Timers
-  monsterRateTimer+=dt;
-  if(monsterRateTimer>=10){monsterRateTimer=0;monsterRate+=10;}
-
-  buffTimer+=dt;
-  if(buffTimer>=8){
-    buffTimer=0;
-    var btype=buffCount===0?'spd':(Math.random()<0.5?'atk':'clone');
-    buffCount++;
-    spawnBuff(btype);
+  // Buff timer
+  buffT+=dt;
+  var buffInterval=elapsed>=120?5:8;
+  if(buffT>=buffInterval){
+    buffT=0;
+    var btype;
+    if(buffCount===0)btype='spd';
+    else{
+      var opts=[];
+      if(spdLevel<3)opts.push('spd','spd');
+      if(statAtk<5)opts.push('atk');
+      if(clones<3)opts.push('cln');
+      if(opts.length===0)opts=['spd'];
+      btype=opts[Math.floor(Math.random()*opts.length)];
+    }
+    buffCount++;spawnDrop(btype);
+    if(elapsed>=120&&Math.random()<0.5){
+      var o2=['atk','cln'];spawnDrop(o2[Math.floor(Math.random()*o2.length)]);
+    }
   }
 
-  shootTimer-=dt;
-  if(shootTimer<=0){shootBullets();shootTimer=getSpdInterval();}
+  // Shoot
+  shootT-=dt;if(shootT<=0){shoot();shootT=getSpdInterval();}
 
-  // Warning at 55s
-  if(!warningShown&&elapsedTime>=55){
-    warningShown=true;
-    document.getElementById('warningOverlay').classList.add('show');
-    playSound('warning');
-    warningTimer=3;
+  // Warning at 115s
+  if(!warnShown&&elapsed>=115){
+    warnShown=true;warnTimer=4;
+    document.getElementById('warn').classList.add('on');
+    snd('wr');
   }
-  if(warningTimer>0){
-    warningTimer-=dt;
-    if(warningTimer<=0)document.getElementById('warningOverlay').classList.remove('show');
-  }
+  if(warnTimer>0){warnTimer-=dt;if(warnTimer<=0)document.getElementById('warn').classList.remove('on');}
 
-  // Boss at 60s
-  if(!bossSpawned&&elapsedTime>=60){spawnBoss();}
+  // Boss at 120s
+  if(!bossSpawned&&elapsed>=120)spawnBoss();
 
-  // Spawn monsters (accumulator)
-  monsterAccumulator+=monsterRate*dt;
-  while(monsterAccumulator>=1){monsterAccumulator--;spawnOneMonster();}
+  var mspd=50+Math.floor(elapsed/30)*6,bspd=22,dspd=52,bltspd=680;
 
-  var monsterSpeed=60+Math.floor(elapsedTime/10)*5;
-  var bossSpeed=25;
-  var buffSpeed=55;
-  var bulletSpeed=650;
-
-  // Move monsters
+  // Monsters
   for(var i=monsters.length-1;i>=0;i--){
     var m=monsters[i];if(!m.active)continue;
-    m.y+=monsterSpeed*dt;m.el.style.top=m.y+'px';
-    if(m.y>gameAreaH){
-      hp-=3;m.active=false;m.el.remove();monsters.splice(i,1);
-      playSound('damage');flashScreen('#ff3a3a',0.25);
-      updateHUD();if(hp<=0){gameOver();return;}
-    }
+    m.y+=mspd*dt;m.el.style.top=m.y+'px';
+    if(m.y>H){hp-=2;m.active=false;m.el.remove();monsters.splice(i,1);snd('dm');flash('#ff3a3a',0.22);updHUD();if(hp<=0){gameOver();return;}}
   }
-
-  // Move boss
-  if(boss&&boss.active){
-    boss.y+=bossSpeed*dt;boss.el.style.top=boss.y+'px';
-    if(boss.y>gameAreaH){
-      hp-=30;boss.active=false;boss.el.remove();boss=null;
-      playSound('damage');flashScreen('#ff3a3a',0.5);
-      updateHUD();if(hp<=0){gameOver();return;}
-    }
+  // Boss
+  if(boss&&boss.active){boss.y+=bspd*dt;boss.el.style.top=boss.y+'px';if(boss.y>H){hp-=40;boss.active=false;boss.el.remove();boss=null;snd('dm');flash('#ff3a3a',0.5);updHUD();if(hp<=0){gameOver();return;}}}
+  // Drops
+  for(var i=drops.length-1;i>=0;i--){
+    var d=drops[i];if(!d.active)continue;
+    d.y+=dspd*dt;d.el.style.top=d.y+'px';
+    if(d.y>H-18){applyBuff(d.type);d.active=false;d.el.remove();drops.splice(i,1);}
   }
-
-  // Move buffs
-  for(var i=buffDrops.length-1;i>=0;i--){
-    var b=buffDrops[i];if(!b.active)continue;
-    b.y+=buffSpeed*dt;b.el.style.top=b.y+'px';
-    if(b.y>gameAreaH-20){
-      applyBuff(b.type);b.active=false;b.el.remove();buffDrops.splice(i,1);
-    }
-  }
-
-  // Move bullets + collision
+  // Bullets
   for(var i=bullets.length-1;i>=0;i--){
     var bl=bullets[i];if(!bl.active)continue;
-    bl.y-=bulletSpeed*dt;bl.el.style.top=bl.y+'px';
-    if(bl.y<-15){bl.active=false;bl.el.remove();bullets.splice(i,1);continue;}
+    bl.y-=bltspd*dt;bl.el.style.top=bl.y+'px';
+    if(bl.y<-12){bl.active=false;bl.el.remove();bullets.splice(i,1);continue;}
     var hit=false;
-
-    if(bl.inLeft||bl.x<leftW+5){
-      // Left lane: check walls then coupons
-      for(var ci=0;ci<3;ci++){
-        var cd=couponData[ci];
-        var midY=getSlotMidY(ci);
-        var wallTop=midY-30,wallBot=midY-8;
-        var couponTop=midY+10,couponBot=midY+52;
-        if(cd.wallHp>0){
-          if(bl.y<=wallBot&&bl.y>=wallTop-10){
-            hitWall(ci,bl.damage,bl.x,bl.y);
-            bl.active=false;bl.el.remove();bullets.splice(i,1);hit=true;break;
-          }
-        }else if(!cd.collected){
-          if(bl.y<=couponBot&&bl.y>=couponTop-10){
-            hitCoupon(ci);
-            bl.active=false;bl.el.remove();bullets.splice(i,1);hit=true;break;
-          }
-        }
-      }
+    if(bl.inL||bl.x<LW+4){
+      hit=checkLeftBullet(bl);
+      if(hit){bl.active=false;bl.el.remove();bullets.splice(i,1);}
     }else{
-      var bxR=bl.x-rightX;
-      // Check boss first
+      var bxR=bl.x-RX;
       if(boss&&boss.active){
-        var bossLeft=rightW/2-50,bossRight=rightW/2+50;
-        if(bxR>=bossLeft&&bxR<=bossRight&&bl.y>=boss.y&&bl.y<=boss.y+60){
-          hitBoss(bl.damage);bl.active=false;bl.el.remove();bullets.splice(i,1);hit=true;
+        if(bxR>=RW/2-55&&bxR<=RW/2+55&&bl.y>=boss.y&&bl.y<=boss.y+55){
+          hitBoss(bl.dmg);bl.active=false;bl.el.remove();bullets.splice(i,1);hit=true;
         }
       }
       if(!hit){
         for(var mi=monsters.length-1;mi>=0;mi--){
           var mo=monsters[mi];if(!mo.active)continue;
-          if(Math.abs(bxR-mo.x-7)<12&&Math.abs(bl.y-mo.y-7)<12){
-            hitMonster(mo,bl.damage);bl.active=false;bl.el.remove();bullets.splice(i,1);hit=true;break;
+          if(Math.abs(bxR-mo.x-6)<11&&Math.abs(bl.y-mo.y-6)<11){
+            hitMob(mo,bl.dmg);bl.active=false;bl.el.remove();bullets.splice(i,1);hit=true;break;
           }
         }
       }
     }
   }
-
-  updateHUD();
+  updHUD();
 }
 
 function gameOver(){
-  gameRunning=false;cancelAnimationFrame(animFrame);
-  document.getElementById('gameOverOverlay').style.display='flex';
-  document.getElementById('goStats').textContent='击败 '+kills+' 只怪物，存活 '+Math.floor(elapsedTime)+'秒';
-  var summary=document.getElementById('goSummary');summary.innerHTML='';
-  if(collectedCoupons.length===0){summary.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:12px">没有拿到任何代金券</p>';}
-  else{collectedCoupons.forEach(function(l){var d=document.createElement('div');d.className='sum-coupon';d.textContent=l;summary.appendChild(d);});}
+  running=false;cancelAnimationFrame(raf);
+  document.getElementById('go').style.display='flex';
+  document.getElementById('gos').textContent='击败 '+kills+' 只怪物，存活 '+Math.floor(elapsed)+'秒';
+  var gc=document.getElementById('goc');gc.innerHTML='';
+  if(collected.length===0)gc.innerHTML='<p style="color:rgba(255,255,255,0.28);font-size:11px">没有拿到代金券</p>';
+  else collected.forEach(function(l){var d=document.createElement('div');d.className='sc';d.textContent=l;gc.appendChild(d);});
 }
 
-var gameArea=document.getElementById('gameArea');
-var laneLeftEl=document.getElementById('laneLeft');
-var laneRightEl=document.getElementById('laneRight');
-var hpFill=document.getElementById('hpFill');
-var couponStrip=document.getElementById('couponStrip');
-var screenFlash=document.getElementById('screenFlash');
+var ga=document.getElementById('gameArea');
+ga.addEventListener('touchstart',function(e){e.preventDefault();touchX=e.touches[0].clientX;try{ac();}catch(ex){}},{passive:false});
+ga.addEventListener('touchmove',function(e){e.preventDefault();var dx=e.touches[0].clientX-touchX;touchX=e.touches[0].clientX;kimiX=Math.max(20,Math.min(W-20,kimiX+dx));posKimi(true);},{passive:false});
+ga.addEventListener('touchend',function(e){e.preventDefault();},{passive:false});
+ga.addEventListener('mousedown',function(e){touchX=e.clientX;try{ac();}catch(ex){}});
+ga.addEventListener('mousemove',function(e){if(e.buttons!==1)return;var dx=e.clientX-touchX;touchX=e.clientX;kimiX=Math.max(20,Math.min(W-20,kimiX+dx));posKimi(true);});
 
-gameArea.addEventListener('touchstart',function(e){e.preventDefault();touchStartX=e.touches[0].clientX;try{getAudio();}catch(ex){}},{passive:false});
-gameArea.addEventListener('touchmove',function(e){e.preventDefault();var dx=e.touches[0].clientX-touchStartX;touchStartX=e.touches[0].clientX;kimiBaseX=Math.max(22,Math.min(gameAreaW-22,kimiBaseX+dx));updateKimiPositions(true);},{passive:false});
-gameArea.addEventListener('touchend',function(e){e.preventDefault();},{passive:false});
-gameArea.addEventListener('mousedown',function(e){touchStartX=e.clientX;try{getAudio();}catch(ex){}});
-gameArea.addEventListener('mousemove',function(e){if(e.buttons!==1)return;var dx=e.clientX-touchStartX;touchStartX=e.clientX;kimiBaseX=Math.max(22,Math.min(gameAreaW-22,kimiBaseX+dx));updateKimiPositions(true);});
-
-document.getElementById('startBtn').addEventListener('click',function(){try{getAudio();}catch(ex){}document.getElementById('startOverlay').style.display='none';initGame();lastTime=performance.now();animFrame=requestAnimationFrame(gameLoop);});
-document.getElementById('restartBtn').addEventListener('click',function(){try{getAudio();}catch(ex){}document.getElementById('gameOverOverlay').style.display='none';initGame();lastTime=performance.now();animFrame=requestAnimationFrame(gameLoop);});
-window.addEventListener('resize',function(){initDimensions();buildKimiClones();});
-initDimensions();
+document.getElementById('sb').addEventListener('click',function(){try{ac();}catch(ex){}document.getElementById('so').style.display='none';initGame();lastT=performance.now();raf=requestAnimationFrame(loop);});
+document.getElementById('rb').addEventListener('click',function(){try{ac();}catch(ex){}document.getElementById('go').style.display='none';initGame();lastT=performance.now();raf=requestAnimationFrame(loop);});
+window.addEventListener('resize',function(){dims();buildKimi();});
+dims();
 </script>
 </body>
 </html>
